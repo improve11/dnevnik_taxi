@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>Дневник смен водителя</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand-mark">ДД</div>
+      <div>
+        <p class="eyebrow">УЧЁТ ПОЕЗДОК</p>
+        <h1>Дневник смен</h1>
+      </div>
+      <a class="api-link" href="/docs" target="_blank" rel="noreferrer">API docs ↗</a>
+    </header>
+
+    <section class="date-panel">
+      <div>
+        <p class="eyebrow">ОБЗОР СМЕНЫ</p>
+        <h2 id="date-heading">Сводка за день</h2>
+      </div>
+      <div class="date-controls">
+        <button id="prev-day" class="icon-button" aria-label="Предыдущий день">←</button>
+        <input id="date-picker" type="date" aria-label="Выбрать дату">
+        <button id="next-day" class="icon-button" aria-label="Следующий день">→</button>
+        <button id="today-button" class="today-button">Сегодня</button>
+      </div>
+    </section>
+
+    <div id="error-banner" class="notice error hidden" role="alert"></div>
+    <div id="success-banner" class="notice success hidden" role="status"></div>
+
+    <section class="stats-grid" aria-label="Сводка за день">
+      <article class="stat-card main-stat">
+        <span class="stat-label">Выручка</span>
+        <strong id="revenue">—</strong>
+        <span class="stat-foot"><span class="dot blue"></span> Общая сумма поездок</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">На руки</span>
+        <strong id="take-home">—</strong>
+        <span class="stat-foot"><span class="dot green"></span> После комиссии</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Комиссия</span>
+        <strong id="commission">—</strong>
+        <span class="stat-foot">Удержания за день</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Поездки</span>
+        <strong id="trip-count">—</strong>
+        <span class="stat-foot">Завершённые поездки</span>
+      </article>
+    </section>
+
+    <section class="payment-grid">
+      <article class="payment-card">
+        <div class="payment-icon cash-icon">₽</div>
+        <div class="payment-content">
+          <span class="stat-label">Наличные</span>
+          <strong id="cash-amount">—</strong>
+          <span id="cash-count" class="muted">0 поездок</span>
+        </div>
+        <span class="payment-tag">CASH</span>
+      </article>
+      <article class="payment-card">
+        <div class="payment-icon card-icon">▤</div>
+        <div class="payment-content">
+          <span class="stat-label">Карта</span>
+          <strong id="card-amount">—</strong>
+          <span id="card-count" class="muted">0 поездок</span>
+        </div>
+        <span class="payment-tag">CARD</span>
+      </article>
+    </section>
+
+    <section class="trips-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ЖУРНАЛ</p>
+          <h2>Поездки <span id="list-count" class="count-pill">0</span></h2>
+        </div>
+        <button id="open-form" class="primary-button">＋ Добавить поездку</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Поездка</th>
+              <th>Время</th>
+              <th>Оплата</th>
+              <th>Комиссия</th>
+              <th class="align-right">Сумма</th>
+            </tr>
+          </thead>
+          <tbody id="trips-body">
+            <tr><td colspan="5" class="empty-cell">Загрузка данных…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">Данные сохраняются локально в базе SQLite.</p>
+    </section>
+
+    <footer><span class="footer-dot"></span> Дневник смен водителя <span class="footer-separator">·</span> Локальный режим</footer>
+  </main>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="form-title">
+    <div class="modal-backdrop" data-close="true"></div>
+    <section class="modal-card">
+      <div class="modal-heading">
+        <div><p class="eyebrow">НОВАЯ ЗАПИСЬ</p><h2 id="form-title">Добавить поездку</h2></div>
+        <button id="close-form" class="close-button" aria-label="Закрыть">×</button>
+      </div>
+      <form id="trip-form">
+        <label>ID поездки <input name="id" required maxlength="100" placeholder="Например, trip-003"></label>
+        <div class="form-row">
+          <label>Начало <input name="start" type="datetime-local" required></label>
+          <label>Окончание <input name="end" type="datetime-local" required></label>
+        </div>
+        <div class="form-row">
+          <label>Сумма <input name="amount" type="number" min="0.01" step="0.01" required placeholder="2400"></label>
+          <label>Комиссия <input name="commission" type="number" min="0" step="0.01" required placeholder="360"></label>
+        </div>
+        <label>Способ оплаты
+          <select name="payment"><option value="card">Карта</option><option value="cash">Наличные</option></select>
+        </label>
+        <p class="form-hint">Время будет отправлено с часовым поясом вашего браузера.</p>
+        <div id="form-error" class="form-error hidden" role="alert"></div>
+        <div class="modal-actions">
+          <button type="button" id="cancel-form" class="secondary-button">Отмена</button>
+          <button type="submit" id="submit-trip" class="primary-button">Сохранить поездку</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
